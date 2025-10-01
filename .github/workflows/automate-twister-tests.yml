@@ -1,0 +1,84 @@
+name: Test Zephyr applications
+
+on:
+  workflow_call:
+    inputs:
+      sdk_version:
+        description: "Zephyr SDK version"
+        required: false
+        default: "0.17.0"
+        type: string
+      test-on:
+        description: "List of applications (JSON array)"
+        required: true
+        default: '["bike_computer"]'
+        type: string
+        
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+  
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJSON(inputs.test-on) }}
+
+    name: ${{ matrix.test }} tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Setup Zephyr
+        uses: Tobi15/setup-zephyr-action@v1
+        with:
+          sdk_version: '0.17.0'
+          path_west_workspace: ${{ github.workspace }}
+          path_west_manifest: ${{ github.workspace }}/manifest-repo/
+
+      - name: Run twister ${{ matrix.test }} on qemu_x86      
+        shell: bash
+        run: |
+          west twister -T ${{ matrix.test }}/tests\
+            -v -p qemu_x86 \
+            --inline-logs \
+            --integration \
+            --outdir $GITHUB_WORKSPACE/twister-out
+            
+      - name: Set variables
+        if: success() || failure()
+        id: vars
+        run: |
+          echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Archive test results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes_${{ steps.vars.outputs.branch }}_${{ steps.vars.outputs.sha_short }}
+          path: |
+            twister-out/testplan.json
+            twister-out/twister_report.xml
+            twister-out/twister_suite_report.xml
+            twister-out/twister.json
+            twister-out/testplan.json
+            twister-out/**/*.log
+            
+      - name: Publish test results
+        if: success() || failure()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: twister-out/twister_suite_report.xml
+          check_name: "${{ matrix.test }} tests summary"
+          check_run_annotations: 'all tests'
+          comment_mode: always
+          job_summary: true          
