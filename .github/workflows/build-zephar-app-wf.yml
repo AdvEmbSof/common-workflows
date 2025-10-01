@@ -1,20 +1,23 @@
 name: Build Zephyr applications
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
         default: "0.17.0"
+        type: string
       boards:
         description: "List of boards (JSON array)"
         required: true
         default: '["nrf5340dk/nrf5340/cpuapp","qemu_x86"]'
+        type: string
       applications:
         description: "List of applications (JSON array)"
         required: true
         default: '["bike_computer","blinky","sensor-bme280"]'
+        type: string
 
 permissions:
   checks: write
