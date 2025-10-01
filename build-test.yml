@@ -1,0 +1,56 @@
+name: Build Zephyr applications
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: "Zephyr SDK version"
+        required: false
+        default: "0.17.0"
+      boards:
+        description: "List of boards (JSON array)"
+        required: true
+        default: '["nrf5340dk/nrf5340/cpuapp","qemu_x86"]'
+      applications:
+        description: "List of applications (JSON array)"
+        required: true
+        default: '["bike_computer","blinky","sensor-bme280"]'
+
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.application }} for ${{ matrix.board }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board: ${{ fromJSON(inputs.boards) }}
+        application: ${{ fromJSON(inputs.applications) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Setup Zephyr
+        uses: AdvEmbSof/setup-zephyr-action@v1
+        with:
+          sdk_version: ${{ github.event.inputs.sdk_version || '0.17.0' }}
+          path_west_workspace: ${{ github.workspace }}
+          path_west_manifest: ${{ github.workspace }}/manifest-repo/
+
+      - name: Build ${{ matrix.application }}
+        run: |
+          if [ "${{ matrix.board }}" = "nrf5340dk/nrf5340/cpuapp" ]; then
+            west build -p -b ${{ matrix.board }} ${{ matrix.application }} --shield adafruit_2_8_tft_touch_v2
+          else
+            west build -p -b ${{ matrix.board }} ${{ matrix.application }}
+          fi
