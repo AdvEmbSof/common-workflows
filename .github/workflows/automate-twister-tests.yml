@@ -15,9 +15,9 @@ on:
         type: string
         
 permissions:
-  checks: write
-  pull-requests: write
-  contents: read
+  #checks: write
+  #pull-requests: write
+  #contents: read
   
 jobs:
   test:
