@@ -14,7 +14,7 @@ on:
         default: '["bike_computer"]'
         type: string
         
-permissions:
+#permissions:
   #checks: write
   #pull-requests: write
   #contents: read
