@@ -19,11 +19,6 @@ on:
         default: '["bike_computer","blinky","sensor-bme280"]'
         type: string
 
-permissions:
-  checks: write
-  pull-requests: write
-  contents: read
-
 jobs:
   build:
     name: Build ${{ matrix.application }} for ${{ matrix.board }}
