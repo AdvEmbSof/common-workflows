@@ -1,4 +1,5 @@
 name: Test Zephyr applications
+run-name: Twister Test for ${{ inputs.repo || github.repository }}
 
 on:
   workflow_call:
@@ -46,10 +47,17 @@ jobs:
 
     name: ${{ matrix.test }} tests
     steps:
+      # 1. Clone the local repository (if applicable)
       - name: Checkout
+        if: "${{ inputs.repo == '' }}"
         uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.repo || github.repository }}
+
+      # 2. Clone the student repository (if applicable)
+      - name: Clone student repository
+        if: "${{ inputs.repo != '' }}"
+        shell: bash
+        run: |
+          git clone ${REPO_URL}
 
       - name: Set up Python
         uses: actions/setup-python@v5
