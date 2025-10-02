@@ -2,6 +2,7 @@ name: Test Zephyr applications
 run-name: Twister Test for ${{ inputs.repo || github.repository }}
 
 on:
+  # When a remote repo call this reusable workflow
   workflow_call:
     inputs:
       sdk_version:
@@ -14,7 +15,8 @@ on:
         required: true
         default: '["bike_computer"]'
         type: string
-
+        
+  # When manually starting the workflows, these inputs are available
   workflow_dispatch:
     inputs:
       sdk_version:
@@ -28,7 +30,7 @@ on:
         default: '["bike_computer"]'
         type: string
       repo:
-        description: 'Repository to be used for checkout (format: owner/repo not URL)'
+        description: 'Public repository to be used for checkout (format: owner/repo not URL)'
         required: false
         type: string
         
@@ -47,28 +49,18 @@ jobs:
 
     name: ${{ matrix.test }} tests
     steps:
-      # 1. Clone the local repository (if applicable)
+      # Clone the local repository (if applicable)
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo || github.repository }}
-          
 
-      # 2. Clone the student repository (if applicable)
-      #- name: Clone student repository
-      #  if: ${{ inputs.repo != '' }}
-      #  shell: bash
-      #  run: |
-       #   REPO_URL="${{ inputs.repo }}"
-       #   REPO_PATH=${REPO_URL#https://github.com/}
-       #   git clone "${REPO_PATH}" .
-          
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      # 4. In a ubuntu image, setup zephyr environment
+      # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: Tobi15/setup-zephyr-action@v1
         with:
@@ -76,7 +68,7 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # 5. Run twister tests on the designed applicaitons
+      # Run twister tests on the designed applicaitons
       - name: Run twister ${{ matrix.test }} on qemu_x86      
         shell: bash
         run: |
