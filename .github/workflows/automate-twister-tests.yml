@@ -30,7 +30,6 @@ on:
         description: 'Repository to be used for checkout'
         required: false
         type: string
-        default: ${{ github.repository }}
         
 permissions:
   checks: write
@@ -50,7 +49,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repo }}
+          repository: ${{ inputs.repo || github.repository }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
