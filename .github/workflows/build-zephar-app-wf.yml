@@ -1,6 +1,8 @@
 name: Build Zephyr applications
+run-name: BUild apps for ${{ inputs.repo || github.repository }}
 
 on:
+  # When a remote repo call this reusable workflow
   workflow_call:
     inputs:
       sdk_version:
@@ -18,6 +20,29 @@ on:
         required: true
         default: '["bike_computer","blinky","sensor-bme280"]'
         type: string
+        
+  # When manually starting the workflows, these inputs are available
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: "Zephyr SDK version"
+        required: false
+        default: "0.17.0"
+        type: string
+      boards:
+        description: "List of boards (JSON array)"
+        required: true
+        default: '["nrf5340dk/nrf5340/cpuapp","qemu_x86"]'
+        type: string
+      applications:
+        description: "List of applications (JSON array)"
+        required: true
+        default: '["bike_computer","blinky","sensor-bme280"]'
+        type: string
+      repo:
+        description: 'Public repository to be used for checkout (format: owner/repo not URL)'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -30,14 +55,18 @@ jobs:
         application: ${{ fromJSON(inputs.applications) }}
 
     steps:
+      # Clone local or remote (given with input) repository
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repo || github.repository }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
+      # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v1
         with:
@@ -45,6 +74,7 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
+      # Build the application using west command
       - name: Build ${{ matrix.application }}
         run: |
           if [ "${{ matrix.board }}" = "nrf5340dk/nrf5340/cpuapp" ]; then
