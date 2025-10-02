@@ -28,7 +28,7 @@ on:
         default: '["bike_computer"]'
         type: string
       repo:
-        description: 'Repository to be used for checkout'
+        description: 'Repository to be used for checkout (format: owner/repo not URL)'
         required: false
         type: string
         
@@ -54,11 +54,20 @@ jobs:
 
       # 2. Clone the student repository (if applicable)
       - name: Clone student repository
-        if: "${{ inputs.repo != '' }}"
+        if: ${{ inputs.repo != '' }}
         shell: bash
+        env:
+          ACCESS_TOKEN: ${{ secrets.CI_PAT || '' }}
         run: |
-          git clone ${REPO_URL}
-
+          REPO="${{ inputs.repo }}"   # format: owner/repo
+          if [ -n "$ACCESS_TOKEN" ]; then
+            echo "Cloning private repo with token"
+            git clone "https://x-access-token:${ACCESS_TOKEN}@github.com/${REPO}.git" .
+          else
+            echo "Cloning public repo without token"
+            git clone "https://github.com/${REPO}.git" .
+          fi
+          
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
