@@ -41,15 +41,15 @@ permissions:
   
 jobs:
   test:
+    name: ${{ matrix.test }} tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         test: ${{ fromJSON(inputs.test-on) }}
 
-    name: ${{ matrix.test }} tests
     steps:
-      # Clone the local repository (if applicable)
+       # Clone local or remote (given with input) repository
       - name: Checkout
         uses: actions/checkout@v4
         with:
