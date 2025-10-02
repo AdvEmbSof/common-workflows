@@ -50,7 +50,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: ${{ input.repo }}
+          repository: ${{ inputs.repo }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -60,7 +60,7 @@ jobs:
       - name: Setup Zephyr
         uses: Tobi15/setup-zephyr-action@v1
         with:
-          sdk_version: '0.17.0'
+          sdk_version: ${{ inputs.sdk_version }}
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
