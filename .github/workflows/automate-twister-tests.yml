@@ -13,6 +13,23 @@ on:
         required: true
         default: '["bike_computer"]'
         type: string
+
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: "Zephyr SDK version"
+        required: false
+        default: "0.17.0"
+        type: string
+      test-on:
+        description: "List of applications (JSON array)"
+        required: true
+        default: '["bike_computer"]'
+        type: string
+      repo:
+        description: 'Repository to be used for checkout'
+        required: false
+        type: string
         
 permissions:
   checks: write
