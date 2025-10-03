@@ -52,17 +52,32 @@ jobs:
         test: ${{ fromJSON(inputs.test-on) }}
 
     steps:
-       # Clone local or remote (given with input) repository
+             # Clone the local repository (if applicable)
       - name: Checkout
+        if: "${{ inputs.repo == '' }}"
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo || github.repository }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
+      # Clone the remote repository (if applicable)
+      - name: Clone remote repository
+        if: "${{ inputs.repo != '' }}"
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ secrets.ADVEMBSOF_2025_2026 }}
+        run: |
+          REPO_URL="${{ inputs.repo }}"
+          REPO_PATH=${REPO_URL#https://github.com/}
+          git clone "https://x-access-token:${ACCESS_TOKEN}@github.com/${REPO_PATH}" .
+          # Switch to target branch if provided
+          if [ -n "${{ github.event.inputs.branch }}" ]; then
+            echo "Switching to branch: ${{ github.event.inputs.branch }}"
+            git fetch origin ${{ github.event.inputs.branch }}
+            git checkout ${{ github.event.inputs.branch }}
+          else
+            echo "Using default branch"
+          fi
+          
       # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: Tobi15/setup-zephyr-action@v1
