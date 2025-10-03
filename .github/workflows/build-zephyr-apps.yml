@@ -69,11 +69,6 @@ jobs:
         with:
           repository: ${{ inputs.repo || github.repository }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
       # Clone the remote repository (if applicable)
       - name: Clone remote repository
         if: "${{ inputs.repo != '' }}"
@@ -92,7 +87,13 @@ jobs:
           else
             echo "Using default branch"
           fi
-          
+
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
       # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v1
