@@ -96,6 +96,8 @@ jobs:
       # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v1
+        secrets:
+          personal_access_token: ${{ secrets.ADVEMBSOF_2025_2026 }}
         with:
           sdk_version: ${{ github.event.inputs.sdk_version || '0.17.0' }}
           path_west_workspace: ${{ github.workspace }}
