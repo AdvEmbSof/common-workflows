@@ -1,8 +1,8 @@
 name: Build Zephyr applications
-run-name: BUild apps for ${{ inputs.repo || github.repository }}
+run-name: Build apps for ${{ inputs.repo || github.repository }}
 
 on:
-  # When a remote repo call this reusable workflow
+  # When a remote repo call this reusable workflow, these inputs may or must be set
   workflow_call:
     inputs:
       sdk_version:
@@ -20,8 +20,15 @@ on:
         required: true
         default: '["bike_computer","blinky","sensor-bme280"]'
         type: string
-        
-  # When manually starting the workflows, these inputs are available
+      repo:
+        description: 'Repository to be used for checkout'
+        required: false
+        type: string
+    secrets:
+      personal_access_token:
+        required: true
+          
+  # When manually starting the workflow, these inputs are available
   workflow_dispatch:
     inputs:
       sdk_version:
@@ -40,7 +47,7 @@ on:
         default: '["bike_computer","blinky","sensor-bme280"]'
         type: string
       repo:
-        description: 'Public repository to be used for checkout (format: owner/repo not URL)'
+        description: 'Private repository to be used for checkout (format: URL)'
         required: false
         type: string
 
@@ -55,8 +62,9 @@ jobs:
         application: ${{ fromJSON(inputs.applications) }}
 
     steps:
-      # Clone local or remote (given with input) repository
+      # Clone the local repository (if applicable)
       - name: Checkout
+        if: "${{ inputs.repo == '' }}"
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo || github.repository }}
@@ -66,6 +74,25 @@ jobs:
         with:
           python-version: '3.13'
 
+      # Clone the remote repository (if applicable)
+      - name: Clone remote repository
+        if: "${{ inputs.repo != '' }}"
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ secrets.ADVEMBSOF_2025_2026 }}
+        run: |
+          REPO_URL="${{ inputs.repo }}"
+          REPO_PATH=${REPO_URL#https://github.com/}
+          git clone "https://x-access-token:${ACCESS_TOKEN}@github.com/${REPO_PATH}" .
+          # Switch to target branch if provided
+          if [ -n "${{ github.event.inputs.branch }}" ]; then
+            echo "Switching to branch: ${{ github.event.inputs.branch }}"
+            git fetch origin ${{ github.event.inputs.branch }}
+            git checkout ${{ github.event.inputs.branch }}
+          else
+            echo "Using default branch"
+          fi
+          
       # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v1
