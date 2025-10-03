@@ -15,6 +15,9 @@ on:
         required: true
         default: '["bike_computer"]'
         type: string
+    secrets:
+      personal_access_token:
+        required: true
         
   # When manually starting the workflows, these inputs are available
   workflow_dispatch:
