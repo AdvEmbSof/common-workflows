@@ -96,12 +96,13 @@ jobs:
             --inline-logs \
             --integration \
             --outdir $GITHUB_WORKSPACE/twister-out
-            
+
+      # Sets variables used for naming the artifact
       - name: Set variables
         if: success() || failure()
         id: vars
         run: |
-          echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "run_id=${{ github.run_id}}" >> $GITHUB_OUTPUT
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       # Make available test results in artifacts
@@ -109,7 +110,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: aes_${{ steps.vars.outputs.branch }}_${{ steps.vars.outputs.sha_short }}
+          name: aes_${{ steps.vars.outputs.run_id }}_${{ steps.vars.outputs.sha_short }}
           path: |
             twister-out/testplan.json
             twister-out/twister_report.xml
