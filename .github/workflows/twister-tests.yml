@@ -52,7 +52,7 @@ jobs:
         test: ${{ fromJSON(inputs.test-on) }}
 
     steps:
-             # Clone the local repository (if applicable)
+      # Clone the local repository (if applicable)
       - name: Checkout
         if: "${{ inputs.repo == '' }}"
         uses: actions/checkout@v4
