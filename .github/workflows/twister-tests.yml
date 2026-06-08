@@ -8,12 +8,17 @@ on:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
-        default: "0.17.0"
+        default: "1.0.1"
         type: string
-      test-on:
-        description: "List of applications (JSON array)"
+      application:
+        description: "Application to be tested"
         required: true
-        default: '["bike_computer"]'
+        default: 'bike_computer'
+        type: string
+      tags:
+        description: "List of space separated tags to be used for filtering tests"
+        required: false
+        default: ''
         type: string
     secrets:
       personal_access_token:
@@ -25,12 +30,17 @@ on:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
-        default: "0.17.0"
+        default: "1.0.1"
         type: string
-      test-on:
-        description: "List of applications (JSON array)"
+      applications:
+        description: "List of applications to be tested (JSON array)"
         required: true
         default: '["bike_computer"]'
+        type: string
+      tags:
+        description: "List of tags to be used for filtering tests (JSON array)"
+        required: false
+        default: '[""]'
         type: string
       repo:
         description: 'Public repository to be used for checkout (format: owner/repo not URL)'
@@ -44,13 +54,8 @@ permissions:
   
 jobs:
   test:
-    name: ${{ matrix.test }} tests
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        test: ${{ fromJSON(inputs.test-on) }}
-
+    
     steps:
       # Clone the local repository (if applicable)
       - name: Checkout
@@ -80,22 +85,35 @@ jobs:
           
       # In a ubuntu image, setup zephyr environment
       - name: Setup Zephyr
-        uses: Tobi15/setup-zephyr-action@v1
+        uses: AdvEmbSof/setup-zephyr-action@v1
         timeout-minutes: 5
         with:
           sdk_version: ${{ inputs.sdk_version }}
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # Run twister tests on the designed applicaitons
-      - name: Run twister ${{ matrix.test }} on qemu_x86      
+      # Build twister command with tags if provided
+      - name: Build twister command
+        id: twister_cmd
         shell: bash
         run: |
-          west twister -T ${{ matrix.test }}/tests\
-            -v -p qemu_x86 \
-            --inline-logs \
-            --integration \
-            --outdir $GITHUB_WORKSPACE/twister-out
+          CMD="west twister -T ${{ inputs.application }}/tests -v -p qemu_x86 --inline-logs --integration --outdir $GITHUB_WORKSPACE/twister-out"
+          
+          if [ -n "${{ inputs.tags }}" ]; then
+            TAGS="${{ inputs.tags }}"
+            TAG_ARGS=""
+            for tag in $TAGS; do
+              TAG_ARGS="$TAG_ARGS --tag $tag"
+            done
+            CMD="$CMD$TAG_ARGS"
+          fi
+          
+          echo "command=$CMD" >> $GITHUB_OUTPUT
+
+      # Run twister tests on the specified application
+      - name: Run twister ${{ inputs.application }} on qemu_x86      
+        shell: bash
+        run: ${{ steps.twister_cmd.outputs.command }}
 
       # Sets variables used for naming the artifact
       - name: Set variables
