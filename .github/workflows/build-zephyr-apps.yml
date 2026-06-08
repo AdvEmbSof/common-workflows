@@ -8,7 +8,7 @@ on:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
-        default: "0.17.0"
+        default: "1.0.1"
         type: string
       boards:
         description: "List of boards (JSON array)"
@@ -34,7 +34,7 @@ on:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
-        default: "0.17.0"
+        default: "1.0.1"
         type: string
       boards:
         description: "List of boards (JSON array)"
