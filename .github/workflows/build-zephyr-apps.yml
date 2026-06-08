@@ -99,7 +99,7 @@ jobs:
         uses: AdvEmbSof/setup-zephyr-action@v1
         timeout-minutes: 5
         with:
-          sdk_version: ${{ github.event.inputs.sdk_version || '0.17.0' }}
+          sdk_version: ${{ github.event.inputs.sdk_version || '1.0.1' }}
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
