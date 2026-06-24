@@ -65,7 +65,7 @@ jobs:
       # Clone the local repository (if applicable)
       - name: Checkout
         if: "${{ inputs.repo == '' }}"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ inputs.repo || github.repository }}
 
@@ -90,7 +90,7 @@ jobs:
 
       # Setup Python
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.3.0
         with:
           python-version: '3.13'
 
