@@ -93,11 +93,11 @@ jobs:
 
           for app in config["applications"]:
               for board in app["boards"]:
-                  for spec in app["specs"]:
+                  for specs in app["specs"]:
                       matrix.append({
                           "app": app["app"],
                           "board": board,
-                          "spec": spec,
+                          "specs": specs,
                       })
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
