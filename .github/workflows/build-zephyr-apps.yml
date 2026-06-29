@@ -94,7 +94,7 @@ jobs:
 
           for app in config["applications"]:
               for board in app["boards"]:
-                  specs = app["specs"]:
+                  specs = app["specs"]
                   matrix.append({
                      "app": app["app"],
                      "board": board,
