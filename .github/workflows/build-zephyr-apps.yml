@@ -39,12 +39,78 @@ on:
         required: false
         type: string
 
-jobs:              
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      # Clone the local repository (if applicable)
+      - name: Checkout
+        if: "${{ inputs.repo == '' }}"
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.repo || github.repository }}
+
+      # Clone the remote repository (if applicable)
+      - name: Clone remote repository
+        if: "${{ inputs.repo != '' }}"
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ secrets.ADVEMBSOF_2025_2026 }}
+        run: |
+          REPO_URL="${{ inputs.repo }}"
+          REPO_PATH=${REPO_URL#https://github.com/}
+          git clone "https://x-access-token:${ACCESS_TOKEN}@github.com/${REPO_PATH}" .
+          # Switch to target branch if provided
+          if [ -n "${{ github.event.inputs.branch }}" ]; then
+            echo "Switching to branch: ${{ github.event.inputs.branch }}"
+            git fetch origin ${{ github.event.inputs.branch }}
+            git checkout ${{ github.event.inputs.branch }}
+          else
+            echo "Using default branch"
+          fi
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+        
+      - id: matrix
+        shell: python
+        env:
+          APPS: ${{ inputs.applications_file }}
+          
+        run: |
+          import json
+          import os
+          import yaml
+          
+          with open(os.environ["APPS"], "r") as f:
+              config = yaml.safe_load(f)
+          
+          matrix = []
+
+          for app in apps:
+              for board in app["boards"]:
+                  for spec in app["specs"]:
+                      matrix.append({
+                          "app": app["app"],
+                          "board": board,
+                          "spec": spec,
+                      })
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              print(f"matrix={json.dumps(matrix)}", file=f)
+              
   build:
     name: Build ${{ matrix.application }} for ${{ matrix.board }}
+    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
         
     steps:
       # Clone the local repository (if applicable)
