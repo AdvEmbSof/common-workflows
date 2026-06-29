@@ -79,19 +79,19 @@ jobs:
       - id: matrix
         shell: python
         env:
-          APPS: ${{ inputs.applications_file }}
+          CONFIG_FILE: ${{ inputs.applications_file }}
           
         run: |
           import json
           import os
           import yaml
           
-          with open(os.environ["APPS"], "r") as f:
+          with open(os.environ["CONFIG_FILE"], "r") as f:
               config = yaml.safe_load(f)
           
           matrix = []
 
-          for app in APPS:
+          for app in config["applications"]:
               for board in app["boards"]:
                   for spec in app["specs"]:
                       matrix.append({
