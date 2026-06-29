@@ -160,5 +160,6 @@ jobs:
           python deps/zpp_lib/scripts/build.py \
             --app "${{ matrix.app }}" \
             --specs "${{ matrix.specs }}" \
-            --board "${{ matrix.board }}"
+            --board "${{ matrix.board }}" \
+            --pristine
           
