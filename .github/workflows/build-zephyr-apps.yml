@@ -104,7 +104,7 @@ jobs:
               print(f"matrix={json.dumps(matrix)}", file=f)
               
   build:
-    name: Build ${{ matrix.application }} for ${{ matrix.board }}
+    name: Build ${{ matrix.app }} for ${{ matrix.board }}
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
