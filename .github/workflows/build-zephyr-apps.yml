@@ -154,42 +154,11 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # Build the matrix to be used for west commands
-      - name: Install PyYAML
-        run: pip install pyyaml
-
-      - name: Build matrix
-        id: build-matrix
-        shell: python
-        env:
-          APPS: ${{ inputs.applications_file }}
-          
-        run: |
-          import json
-          import os
-          import yaml
-          
-          with open(os.environ["APPS"], "r") as f:
-              config = yaml.safe_load(f)
-          
-          matrix = []
-
-          for app in apps:
-              for board in app["boards"]:
-                  for spec in app["specs"]:
-                      matrix.append({
-                          "app": app["app"],
-                          "board": board,
-                          "spec": spec,
-                      })
-
-          echo "matrix={json.dumps(matrix)}" >> "$GITHUB_OUTPUT" 
-          
       # Build the application using west command
-      - name: Build ${{ steps.build-matrix.outputs.matrix.app }}
+      - name: Build ${{ matrix.app }} for board ${{ matrix.board }}
         run: |
           python deps/zpp_lib/scripts/build.py \
-            --app "${{ steps.build-matrix.outputs.matrix.app }}" \
-            --specs "${{ steps.build-matrix.outputs.matrix.specs }}" \
+            --app "${{ matrix.app }}" \
+            --specs "${{ matrix.specs }}" \
             --board "${{ matrix.board }}"
           
