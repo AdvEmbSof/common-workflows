@@ -10,16 +10,10 @@ on:
         required: false
         default: "1.0.1"
         type: string
-      boards:
-        description: "List of boards (JSON array)"
-        required: true
-        default: '["nrf5340dk/nrf5340/cpuapp","qemu_x86"]'
+      applications_file:
         type: string
-      applications:
-        description: "List of applications (JSON array)"
-        required: true
-        default: '["bike_computer","blinky","sensor-bme280"]'
-        type: string
+        required: false
+        default: ci/applications_for_build.yaml        
       repo:
         description: 'Repository to be used for checkout'
         required: false
@@ -36,31 +30,64 @@ on:
         required: false
         default: "1.0.1"
         type: string
-      boards:
-        description: "List of boards (JSON array)"
-        required: true
-        default: '["nrf5340dk/nrf5340/cpuapp","qemu_x86"]'
+      applications_file:
         type: string
-      applications:
-        description: "List of applications (JSON array)"
-        required: true
-        default: '["bike_computer","blinky","sensor-bme280"]'
-        type: string
+        required: false
+        default: ci/applications_for_build.yaml
       repo:
         description: 'Private repository to be used for checkout (format: URL)'
         required: false
         type: string
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+        
+      - id: matrix
+        shell: python
+        env:
+          APPS: ${{ inputs.applications_file }}
+          
+        run: |
+          import json
+          import os
+          import yaml
+          
+          with open(os.environ["APPS"], "r") as f:
+              config = yaml.safe_load(f)
+          
+          matrix = []
+
+          for app in apps:
+              for board in app["boards"]:
+                  for spec in app["specs"]:
+                      matrix.append({
+                          "app": app["app"],
+                          "board": board,
+                          "spec": spec,
+                      })
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              print(f"matrix={json.dumps(matrix)}", file=f)
+              
   build:
     name: Build ${{ matrix.application }} for ${{ matrix.board }}
+    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        board: ${{ fromJSON(inputs.boards) }}
-        application: ${{ fromJSON(inputs.applications) }}
-
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+        
     steps:
       # Clone the local repository (if applicable)
       - name: Checkout
@@ -106,8 +133,5 @@ jobs:
       # Build the application using west command
       - name: Build ${{ matrix.application }}
         run: |
-          if [ "${{ matrix.board }}" = "nrf5340dk/nrf5340/cpuapp" ]; then
-            west build -p -b ${{ matrix.board }} ${{ matrix.application }} --shield adafruit_2_8_tft_touch_v2
-          else
-            west build -p -b ${{ matrix.board }} ${{ matrix.application }}
-          fi
+          python deps/zpp_lib/scripts/build.py --app "${{ matrix.app }}" --specs "${{ matrix.spec }}" --board "${{ matrix.board }}"
+          
