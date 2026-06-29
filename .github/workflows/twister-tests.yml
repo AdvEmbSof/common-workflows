@@ -94,8 +94,8 @@ jobs:
           matrix = []
 
           for test in config["tests"]:
-              root = test["root"]:
-              tags in root["tags"]:
+              root = test["root"]
+              tags in root["tags"]
               matrix.append({
                 "root": root,
                 "tags": tags,
