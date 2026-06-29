@@ -91,7 +91,7 @@ jobs:
           
           matrix = []
 
-          for app in apps:
+          for app in APPS:
               for board in app["boards"]:
                   for spec in app["specs"]:
                       matrix.append({
