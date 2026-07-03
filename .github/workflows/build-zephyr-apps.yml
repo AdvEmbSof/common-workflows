@@ -42,7 +42,6 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.app }} for ${{ matrix.board }}
     runs-on: ubuntu-latest
         
     steps:
