@@ -93,13 +93,15 @@ jobs:
           matrix = []
 
           for app in config["applications"]:
-              specs = app["specs"]
+              config_dir = app["config_dir"]
               for board in app["boards"]:
-                  matrix.append({
-                     "app": app["app"],
-                     "board": board,
-                     "specs": specs,
-                  })
+                  for spec in app["specs"]:
+                      matrix.append({
+                          "app": app["app"],
+                          "board": board,
+                          "spec": spec,
+                          "config_dir": config_dir
+                      })
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               print(f"matrix={json.dumps(matrix)}", file=f)
@@ -160,7 +162,8 @@ jobs:
         run: |
           python deps/zpp_lib/scripts/build.py \
             --app "${{ matrix.app }}" \
-            --specs "${{ matrix.specs }}" \
+            --spec "${{ matrix.spec }}" \
             --board "${{ matrix.board }}" \
+            --config_dir "${{ matrix.config_dir }}" \
             --pristine
           
