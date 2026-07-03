@@ -90,5 +90,4 @@ jobs:
       - name: Build apps as described in ${{ inputs.configuration_file }}
         run: |
           python deps/zpp_lib/scripts/build_from_config.py --config ${{ inputs.configuration_file }}
-            --pristine
           
