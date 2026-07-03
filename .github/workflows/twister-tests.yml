@@ -1,5 +1,8 @@
 name: Test Zephyr applications
-run-name: Twister Test for ${{ inputs.repo || github.repository }}
+run-name: Twister Tests for ${{ inputs.repo || github.repository }}
+
+# Given that setting up Zephyr, we do not distribute jobs using a matrix,
+# but we rather setup Zephyr once and build applications sequentially using the build_from_config script
 
 on:
   # When a remote repo call this reusable workflow
@@ -41,77 +44,8 @@ permissions:
   contents: read
   
 jobs:
-  prepare:
+  tests:
     runs-on: ubuntu-latest
-    
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-
-    steps:
-      # Clone the local repository (if applicable)
-      - name: Checkout
-        if: "${{ inputs.repo == '' }}"
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ inputs.repo || github.repository }}
-
-      # Clone the remote repository (if applicable)
-      - name: Clone remote repository
-        if: "${{ inputs.repo != '' }}"
-        shell: bash
-        env:
-          ACCESS_TOKEN: ${{ secrets.ADVEMBSOF_2025_2026 }}
-        run: |
-          REPO_URL="${{ inputs.repo }}"
-          REPO_PATH=${REPO_URL#https://github.com/}
-          git clone "https://x-access-token:${ACCESS_TOKEN}@github.com/${REPO_PATH}" .
-          # Switch to target branch if provided
-          if [ -n "${{ github.event.inputs.branch }}" ]; then
-            echo "Switching to branch: ${{ github.event.inputs.branch }}"
-            git fetch origin ${{ github.event.inputs.branch }}
-            git checkout ${{ github.event.inputs.branch }}
-          else
-            echo "Using default branch"
-          fi
-
-      - name: Install PyYAML
-        run: pip install pyyaml
-        
-      - name: Build matrix
-        id: matrix
-        shell: python
-        env:
-          CONFIG_FILE: ${{ inputs.configuration_file }}
-          
-        run: |
-          import json
-          import os
-          import yaml
-          
-          with open(os.environ["CONFIG_FILE"], "r") as f:
-              config = yaml.safe_load(f)
-          
-          matrix = []
-
-          for test in config["tests"]:
-              root = test["root"]
-              tags = test["tags"]
-              matrix.append({
-                "root": root,
-                "tags": tags,
-              })
-
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              print(f"matrix={json.dumps(matrix)}", file=f)
-          
-  test:
-    name: Test at root ${{ matrix.root }} with tags ${{ matrix.tags }}
-    runs-on: ubuntu-latest
-    needs: prepare
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
        
     steps:
       # Clone the local repository (if applicable)
@@ -149,14 +83,11 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # Run twister command 
-      - name: Build twister command
+      # Run the tests using the twister.py script
+      - name: Run twister from config
         id: twister_cmd
         run: |
-          python deps/zpp_lib/scripts/twister.py \
-            --root "${{ matrix.root }}" \
-            --tags "${{ matrix.tags }}" \
-            --board qemu_x86 \
+          python deps/zpp_lib/scripts/twister_from_config.py --config ${{ inputs.configuration_file }} --board qemu_x86
             
       # Sets variables used for naming the artifact
       - name: Set variables
