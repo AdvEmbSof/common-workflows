@@ -86,8 +86,8 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # Build the applications using the build_from_config script
+      # Build the applications using the build_from_yaml script
       - name: Build apps as described in ${{ inputs.configuration_file }}
         run: |
-          python deps/zpp_lib/scripts/build_from_config.py --config ${{ inputs.configuration_file }}
+          python deps/zpp_lib/scripts/build_from_yaml.py --config ${{ inputs.configuration_file }}
           
