@@ -83,11 +83,11 @@ jobs:
           path_west_workspace: ${{ github.workspace }}
           path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
-      # Run the tests using the twister.py script
-      - name: Run twister from config
+      # Run the tests using the twister_from_yaml.py script
+      - name: Run twister from yaml
         id: twister_cmd
         run: |
-          python deps/zpp_lib/scripts/twister_from_config.py --config ${{ inputs.configuration_file }} --board qemu_x86
+          python deps/zpp_lib/scripts/twister_from_yaml.py --config ${{ inputs.configuration_file }} --board qemu_x86
             
       # Sets variables used for naming the artifact
       - name: Set variables
