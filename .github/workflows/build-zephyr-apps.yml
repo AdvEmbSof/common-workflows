@@ -89,5 +89,5 @@ jobs:
       # Build the applications using the build_from_yaml script
       - name: Build apps as described in ${{ inputs.configuration_file }}
         run: |
-          python deps/zpp_lib/scripts/build_from_yaml.py --config ${{ inputs.configuration_file }}
+          python deps/zpp_lib/scripts/build_from_yaml.py --yaml ${{ inputs.configuration_file }}
           
