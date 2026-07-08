@@ -87,7 +87,7 @@ jobs:
       - name: Run twister from yaml
         id: twister_cmd
         run: |
-          python deps/zpp_lib/scripts/twister_from_yaml.py --config ${{ inputs.configuration_file }} --board qemu_x86
+          python deps/zpp_lib/scripts/twister_from_yaml.py --yaml ${{ inputs.configuration_file }} --board qemu_x86
             
       # Sets variables used for naming the artifact
       - name: Set variables
